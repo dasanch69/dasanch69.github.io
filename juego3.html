@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Preguntas Personalizable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos generales para toda la página */
+        body {
+            font-family: 'Press Start 2P', cursive; /* Fuente pixelada */
+            background-color: #2c3e50; /* Color de fondo oscuro */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #ecf0f1; /* Color de texto blanco/gris claro */
+            text-align: center;
+            overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+        }
+
+        /* Animaciones para los botones de respuesta */
+        @keyframes pulse-green {
+            0% { transform: scale(1); background-color: #2c3e50; }
+            50% { transform: scale(1.03); background-color: #2ecc71; } /* Verde */
+            100% { transform: scale(1); background-color: #2c3e50; }
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); background-color: #2c3e50; }
+            50% { transform: scale(1.03); background-color: #e74c3c; } /* Rojo */
+            100% { transform: scale(1); background-color: #2c3e50; }
+        }
+
+        .animate-pulse-green {
+            animation: pulse-green 0.5s ease-in-out forwards;
+        }
+
+        .animate-pulse-red {
+            animation: pulse-red 0.5s ease-in-out forwards;
+        }
+
+        /* Animación para el mensaje de feedback */
+        @keyframes fade-in-out {
+            0% { opacity: 0; transform: translateY(20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .feedback-animation {
+            animation: fade-in-out 1.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="intro-screen" class="flex flex-col items-center justify-center h-screen w-full absolute top-0 left-0 bg-[#2c3e50]">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl mb-12 text-[#ecf0f1] drop-shadow-lg">Juego de Preguntas</h1>
+        <button id="start-button" class="px-8 py-4 text-2xl font-bold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-200 ease-in-out transform hover:-translate-y-1 active:translate-y-1">
+            Empezar
+        </button>
+    </div>
+
+    <div id="question-input-screen" class="hidden flex-col items-center justify-center h-screen w-full absolute top-0 left-0 bg-[#34495e] p-4 overflow-y-auto">
+        <h2 class="text-3xl md:text-4xl mb-8 text-[#ecf0f1] drop-shadow-md">Configurar Preguntas</h2>
+
+        <div class="bg-[#2c3e50] p-6 md:p-8 rounded-lg shadow-xl w-full max-w-2xl mb-8">
+            <div class="mb-4">
+                <label for="question-text-input" class="block text-left text-lg font-bold mb-2 text-[#ecf0f1]">Pregunta:</label>
+                <textarea id="question-text-input" class="w-full p-3 rounded-md bg-[#ecf0f1] text-[#2c3e50] focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Escribe tu pregunta aquí..."></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-left text-lg font-bold mb-2 text-[#ecf0f1]">Opciones de Respuesta:</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <input type="text" id="option-input-1" class="w-full p-3 rounded-md bg-[#ecf0f1] text-[#2c3e50] focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Opción 1">
+                        <label class="inline-flex items-center mt-2 text-[#ecf0f1]">
+                            <input type="radio" name="correct-option" value="0" class="form-radio h-5 w-5 text-green-500">
+                            <span class="ml-2">Correcta</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="text" id="option-input-2" class="w-full p-3 rounded-md bg-[#ecf0f1] text-[#2c3e50] focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Opción 2">
+                        <label class="inline-flex items-center mt-2 text-[#ecf0f1]">
+                            <input type="radio" name="correct-option" value="1" class="form-radio h-5 w-5 text-green-500">
+                            <span class="ml-2">Correcta</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="text" id="option-input-3" class="w-full p-3 rounded-md bg-[#ecf0f1] text-[#2c3e50] focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Opción 3">
+                        <label class="inline-flex items-center mt-2 text-[#ecf0f1]">
+                            <input type="radio" name="correct-option" value="2" class="form-radio h-5 w-5 text-green-500">
+                            <span class="ml-2">Correcta</span>
+                        </label>
+                    </div>
+                    <div>
+                        <input type="text" id="option-input-4" class="w-full p-3 rounded-md bg-[#ecf0f1] text-[#2c3e50] focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Opción 4">
+                        <label class="inline-flex items-center mt-2 text-[#ecf0f1]">
+                            <input type="radio" name="correct-option" value="3" class="form-radio h-5 w-5 text-green-500">
+                            <span class="ml-2">Correcta</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button id="add-question-button" class="w-full px-6 py-3 text-xl font-bold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 active:translate-y-0.5">
+                Añadir Pregunta
+            </button>
+        </div>
+
+        <div class="bg-[#2c3e50] p-6 md:p-8 rounded-lg shadow-xl w-full max-w-2xl mb-8">
+            <h3 class="text-2xl font-bold mb-4 text-[#ecf0f1]">Preguntas Añadidas:</h3>
+            <ul id="added-questions-list" class="text-left text-lg text-[#ecf0f1] max-h-60 overflow-y-auto custom-scrollbar">
+                </ul>
+            <button id="start-quiz-button" class="mt-6 px-8 py-4 text-2xl font-bold text-white bg-purple-600 rounded-lg shadow-lg hover:bg-purple-700 transition-all duration-200 ease-in-out transform hover:-translate-y-1 active:translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Empezar Quiz
+            </button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden flex-col items-center justify-center h-screen w-full absolute top-0 left-0 bg-[#34495e] p-4">
+        <h2 class="text-3xl md:text-4xl mb-8 text-[#ecf0f1] drop-shadow-md">¡A Responder!</h2>
+        <div class="bg-[#2c3e50] p-6 md:p-8 rounded-lg shadow-xl w-full max-w-3xl">
+            <p id="question-display" class="text-2xl md:text-3xl mb-8 text-[#ecf0f1] font-bold"></p>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button class="option-button w-full px-6 py-4 text-xl font-bold text-white bg-[#34495e] rounded-lg shadow-md hover:bg-[#4a637a] transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 active:translate-y-0.5"></button>
+                <button class="option-button w-full px-6 py-4 text-xl font-bold text-white bg-[#34495e] rounded-lg shadow-md hover:bg-[#4a637a] transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 active:translate-y-0.5"></button>
+                <button class="option-button w-full px-6 py-4 text-xl font-bold text-white bg-[#34495e] rounded-lg shadow-md hover:bg-[#4a637a] transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 active:translate-y-0.5"></button>
+                <button class="option-button w-full px-6 py-4 text-xl font-bold text-white bg-[#34495e] rounded-lg shadow-md hover:bg-[#4a637a] transition-all duration-200 ease-in-out transform hover:-translate-y-0.5 active:translate-y-0.5"></button>
+            </div>
+            <p id="feedback-message" class="text-2xl font-bold mt-4 feedback-animation"></p>
+            <button id="next-question-button" class="hidden mt-6 px-8 py-4 text-2xl font-bold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-200 ease-in-out transform hover:-translate-y-1 active:translate-y-1">
+                Siguiente Pregunta
+            </button>
+        </div>
+    </div>
+
+    <div id="results-screen" class="hidden flex-col items-center justify-center h-screen w-full absolute top-0 left-0 bg-[#2c3e50]">
+        <h2 class="text-4xl md:text-5xl mb-8 text-[#ecf0f1] drop-shadow-lg">¡Quiz Terminado!</h2>
+        <p class="text-3xl md:text-4xl mb-8 text-[#ecf0f1]">Tu puntuación: <span id="score-display" class="font-bold text-green-400">0</span> / <span id="total-questions-display" class="font-bold text-yellow-400">0</span></p>
+        <button id="restart-game-button" class="px-8 py-4 text-2xl font-bold text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-200 ease-in-out transform hover:-translate-y-1 active:translate-y-1">
+            Jugar de Nuevo
+        </button>
+    </div>
+
+    <script>
+        // --- Referencias a los elementos del DOM ---
+        const introScreen = document.getElementById('intro-screen');
+        const startButton = document.getElementById('start-button');
+
+        const questionInputScreen = document.getElementById('question-input-screen');
+        const questionTextInput = document.getElementById('question-text-input');
+        const optionInputs = [
+            document.getElementById('option-input-1'),
+            document.getElementById('option-input-2'),
+            document.getElementById('option-input-3'),
+            document.getElementById('option-input-4')
+        ];
+        const correctOptionRadios = document.querySelectorAll('input[name="correct-option"]');
+        const addQuestionButton = document.getElementById('add-question-button');
+        const addedQuestionsList = document.getElementById('added-questions-list');
+        const startQuizButton = document.getElementById('start-quiz-button');
+
+        const quizScreen = document.getElementById('quiz-screen');
+        const questionDisplay = document.getElementById('question-display');
+        const optionButtons = document.querySelectorAll('#options-container .option-button');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const nextQuestionButton = document.getElementById('next-question-button');
+
+        const resultsScreen = document.getElementById('results-screen');
+        const scoreDisplay = document.getElementById('score-display');
+        const totalQuestionsDisplay = document.getElementById('total-questions-display');
+        const restartGameButton = document.getElementById('restart-game-button');
+
+        // --- Variables del Juego ---
+        let questions = []; // Array para almacenar las preguntas creadas por el usuario
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        // --- Funciones de Control de Pantallas ---
+        /**
+         * Muestra la pantalla deseada y oculta las demás.
+         * @param {HTMLElement} screenToShow El elemento DOM de la pantalla a mostrar.
+         */
+        function showScreen(screenToShow) {
+            introScreen.classList.add('hidden');
+            questionInputScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+
+            screenToShow.classList.remove('hidden');
+            screenToShow.classList.add('flex'); // Asegura que la pantalla se muestre como flex
+        }
+
+        // --- Lógica de Configuración de Preguntas ---
+        addQuestionButton.addEventListener('click', () => {
+            const questionText = questionTextInput.value.trim();
+            const options = optionInputs.map(input => input.value.trim());
+            const correctOptionIndex = Array.from(correctOptionRadios).findIndex(radio => radio.checked);
+
+            // Validar que todos los campos estén llenos y una opción correcta seleccionada
+            if (!questionText || options.some(opt => !opt) || correctOptionIndex === -1) {
+                alert('Por favor, rellena la pregunta, todas las opciones y selecciona la respuesta correcta.');
+                return;
+            }
+
+            // Crear el objeto de la pregunta
+            const newQuestion = {
+                question: questionText,
+                options: options,
+                correctAnswer: options[correctOptionIndex] // Almacena el texto de la respuesta correcta
+            };
+
+            questions.push(newQuestion); // Añadir la pregunta al array
+
+            // Actualizar la lista de preguntas añadidas en la UI
+            const listItem = document.createElement('li');
+            listItem.textContent = `${questions.length}. ${questionText}`;
+            addedQuestionsList.appendChild(listItem);
+
+            // Limpiar los campos del formulario
+            questionTextInput.value = '';
+            optionInputs.forEach(input => input.value = '');
+            correctOptionRadios.forEach(radio => radio.checked = false);
+
+            // Habilitar el botón de "Empezar Quiz" si hay al menos una pregunta
+            if (questions.length > 0) {
+                startQuizButton.disabled = false;
+            }
+        });
+
+        // --- Lógica del Quiz ---
+        /**
+         * Muestra la pregunta actual y sus opciones.
+         */
+        function displayQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                const q = questions[currentQuestionIndex];
+                questionDisplay.textContent = q.question;
+                feedbackMessage.textContent = ''; // Limpiar mensaje de feedback
+                feedbackMessage.classList.remove('feedback-animation'); // Resetear animación
+                nextQuestionButton.classList.add('hidden'); // Ocultar botón de siguiente
+
+                // Mezclar las opciones para que no siempre aparezcan en el mismo orden
+                const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+                // Asignar texto y evento a cada botón de opción
+                optionButtons.forEach((button, index) => {
+                    button.textContent = shuffledOptions[index];
+                    button.onclick = () => checkAnswer(shuffledOptions[index], q.correctAnswer, button);
+                    button.classList.remove('animate-pulse-green', 'animate-pulse-red'); // Limpiar animaciones previas
+                    button.disabled = false; // Habilitar botones
+                });
+            } else {
+                endGame(); // Si no hay más preguntas, terminar el juego
+            }
+        }
+
+        /**
+         * Verifica la respuesta seleccionada y actualiza la puntuación.
+         * @param {string} selectedOption La opción de respuesta seleccionada.
+         * @param {string} correctAnswer La respuesta correcta para la pregunta actual.
+         * @param {HTMLElement} clickedButton El botón que fue clickeado.
+         */
+        function checkAnswer(selectedOption, correctAnswer, clickedButton) {
+            // Deshabilitar todos los botones de opción para evitar múltiples clics
+            optionButtons.forEach(button => button.disabled = true);
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                feedbackMessage.textContent = '¡Correcto!';
+                feedbackMessage.style.color = '#2ecc71'; // Verde
+                clickedButton.classList.add('animate-pulse-green'); // Animación de pulso verde
+            } else {
+                feedbackMessage.textContent = `Incorrecto. La respuesta correcta era: "${correctAnswer}"`;
+                feedbackMessage.style.color = '#e74c3c'; // Rojo
+                clickedButton.classList.add('animate-pulse-red'); // Animación de pulso rojo
+                // Opcional: Resaltar la respuesta correcta si se quiere mostrar
+                optionButtons.forEach(button => {
+                    if (button.textContent === correctAnswer) {
+                        button.style.backgroundColor = '#2ecc71'; // Resaltar la correcta
+                    }
+                });
+            }
+
+            feedbackMessage.classList.add('feedback-animation'); // Iniciar animación del mensaje
+
+            // Mostrar el botón "Siguiente Pregunta" después de un breve retraso para la animación
+            setTimeout(() => {
+                nextQuestionButton.classList.remove('hidden');
+            }, 1000); // Esperar 1 segundo para la animación
+        }
+
+        /**
+         * Pasa a la siguiente pregunta o finaliza el juego.
+         */
+        function nextQuestion() {
+            currentQuestionIndex++;
+            optionButtons.forEach(button => {
+                button.classList.remove('animate-pulse-green', 'animate-pulse-red');
+                button.style.backgroundColor = ''; // Restablecer color de fondo
+            });
+            displayQuestion();
+        }
+
+        /**
+         * Muestra la pantalla de resultados.
+         */
+        function endGame() {
+            scoreDisplay.textContent = score;
+            totalQuestionsDisplay.textContent = questions.length;
+            showScreen(resultsScreen);
+        }
+
+        /**
+         * Reinicia el juego a la pantalla de introducción.
+         */
+        function restartGame() {
+            questions = []; // Limpiar preguntas para una nueva partida
+            currentQuestionIndex = 0;
+            score = 0;
+            addedQuestionsList.innerHTML = ''; // Limpiar lista de preguntas añadidas
+            startQuizButton.disabled = true; // Deshabilitar botón de inicio de quiz
+            showScreen(introScreen);
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            showScreen(questionInputScreen);
+        });
+
+        startQuizButton.addEventListener('click', () => {
+            if (questions.length > 0) {
+                currentQuestionIndex = 0; // Asegurarse de empezar desde la primera pregunta
+                score = 0; // Reiniciar puntuación
+                showScreen(quizScreen);
+                displayQuestion();
+            } else {
+                alert('Por favor, añade al menos una pregunta antes de empezar el quiz.');
+            }
+        });
+
+        nextQuestionButton.addEventListener('click', nextQuestion);
+        restartGameButton.addEventListener('click', restartGame);
+
+        // --- Inicialización ---
+        // La pantalla de introducción ya está visible por defecto gracias al CSS inicial.
+    </script>
+</body>
+</html>
