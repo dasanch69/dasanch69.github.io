@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto del Cerebro - Intermedio con Líneas</title>
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAAtHHqei3VOLDY0dBicC9nb_czWiUycLF_A&s" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales para toda la página */
+        body {
+            font-family: 'Press Start 2P', cursive; /* Fuente pixelada */
+            background-color: #2c3e50; /* Color de fondo oscuro */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #ecf0f1; /* Color de texto blanco/gris claro */
+            text-align: center;
+            overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+        }
+
+        /* --- Estilos para la Pantalla de Introducción --- */
+        #intro-screen {
+            display: flex; /* Visible por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #2c3e50;
+        }
+
+        #intro-screen h1 {
+            font-size: 2.5em;
+            margin-bottom: 50px;
+            text-shadow: 4px 4px #1a252f; /* Sombra para el texto */
+        }
+
+        /* Estilo del botón "Empezar" */
+        #start-button {
+            padding: 20px 60px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            background-color: #f39c12; /* Naranja para intermedio */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.3); /* Sombra 3D */
+        }
+
+        #start-button:hover {
+            transform: translateY(-3px); /* Efecto de "levantar" */
+            box-shadow: 0 8px 0 rgba(0,0,0,0.3);
+        }
+
+        #start-button:active {
+            transform: translateY(2px); /* Efecto de "presionar" */
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+        }
+
+        /* --- Estilos para la Pantalla del Juego del Laberinto --- */
+        #game-screen {
+            display: none; /* Oculto por defecto, se muestra al hacer clic en "Empezar" */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #34495e; /* Fondo del juego */
+        }
+
+        #game-screen h2 {
+            margin-bottom: 20px;
+            color: #ecf0f1;
+            font-size: 2em;
+            text-shadow: 2px 2px #1a252f;
+        }
+
+        #game-container {
+            position: relative;
+            width: 520px; /* Ancho del laberinto (25 * 20px celdas + 2 * 10px borde) */
+            height: 520px; /* Alto del laberinto (25 * 20px celdas + 2 * 10px borde) */
+            border: 10px solid #2c3e50; /* Borde grueso */
+            background-color: #1a252f; /* Color de las paredes del laberinto */
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #maze-canvas {
+            display: block;
+            background-color: #ecf0f1; /* Color del camino del laberinto */
+        }
+
+        #ball {
+            position: absolute;
+            background-color: #e74c3c; /* Rojo vivo */
+            border-radius: 50%;
+            transition: left 0.05s linear, top 0.05s linear; /* Suaviza el movimiento */
+        }
+
+        #goal {
+            position: absolute;
+            background-color: #2ecc71; /* Verde esmeralda para la meta */
+            animation: pulse 1.5s infinite ease-in-out; /* Animación de pulsación */
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- Estilos para el Overlay de Preguntas --- */
+        #message-overlay {
+            position: fixed; /* Fijo en la ventana de visualización */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fondo semitransparente oscuro */
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Asegura que esté por encima de todo */
+        }
+
+        #question-box { /* Contenedor de la pregunta y opciones */
+            background-color: #34495e;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            color: #ecf0f1;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        #question-text { /* Texto de la pregunta */
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+
+        .option-button { /* Botones para las opciones de respuesta */
+            display: block;
+            width: 80%;
+            padding: 15px 20px;
+            margin: 15px auto;
+            font-size: 1.2em;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .option-button:hover {
+            background-color: #34495e;
+            transform: translateY(-2px);
+        }
+
+        .option-button:active {
+            transform: translateY(0);
+        }
+
+        #feedback-message { /* Mensaje de retroalimentación (Correcto/Incorrecto) */
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        /* Estilos para los botones de acción en el overlay */
+        #retry-button, #next-question-button, #finish-game-button, #restart-game-button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: none; /* Oculto por defecto */
+        }
+
+        #retry-button { background-color: #e74c3c; /* Rojo para Reintentar */ }
+        #retry-button:hover { background-color: #c0392b; }
+
+        #next-question-button, #finish-game-button { background-color: #27ae60; /* Verde para Siguiente/Finalizar */ }
+        #next-question-button:hover, #finish-game-button:hover { background-color: #219d54; }
+
+        #restart-game-button { background-color: #f39c12; /* Naranja para Reiniciar Laberinto */ }
+        #restart-game-button:hover { background-color: #e67e22; }
+
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <h1>Laberinto Intermedio</h1>
+        <button id="start-button">Empezar</button>
+    </div>
+
+    <div id="game-screen">
+        <h2>Laberinto Intermedio</h2>
+        <div id="game-container">
+            <canvas id="maze-canvas" width="500" height="500"></canvas>
+            <div id="ball"></div>
+            <div id="goal"></div>
+        </div>
+    </div>
+
+    <div id="message-overlay">
+        <div id="question-box">
+            <p id="question-text"></p>
+            <div id="options-container">
+                <button class="option-button" id="option1"></button>
+                <button class="option-button" id="option2"></button>
+                <button class="option-button" id="option3"></button>
+            </div>
+            <p id="feedback-message"></p>
+            <button id="retry-button">Reintentar</button>
+            <button id="next-question-button">Siguiente Pregunta</button>
+            <button id="finish-game-button">¡Felicidades! Reiniciar Juego</button>
+            <button id="restart-game-button">Reiniciar Laberinto</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Definición de Preguntas sobre el Cerebro ---
+        const brainQuestions = [
+            {
+                question: "¿Qué parte del cerebro es responsable de la memoria a largo plazo?",
+                options: ["Cerebelo", "Corteza Prefrontal", "Hipocampo"],
+                correctAnswer: "Hipocampo"
+            },
+            {
+                question: "¿Qué lóbulo del cerebro procesa la información del tacto y la temperatura?",
+                options: ["Lóbulo Frontal", "Lóbulo Parietal", "Lóbulo Temporal"],
+                correctAnswer: "Lóbulo Parietal"
+            },
+            {
+                question: "¿Cuál es la función del tronco encefálico?",
+                options: ["Controlar el lenguaje", "Regular funciones vitales como la respiración y el ritmo cardíaco", "Procesar emociones"],
+                correctAnswer: "Regular funciones vitales como la respiración y el ritmo cardíaco"
+            },
+            {
+                question: "La amígdala es una estructura clave en el procesamiento de...",
+                options: ["La visión", "Las emociones, especialmente el miedo", "El equilibrio"],
+                correctAnswer: "Las emociones, especialmente el miedo"
+            },
+            {
+                question: "¿Qué parte del cerebro es el centro de control de las funciones ejecutivas (planificación, toma de decisiones)?",
+                options: ["Lóbulo Occipital", "Lóbulo Frontal", "Cerebelo"],
+                correctAnswer: "Lóbulo Frontal"
+            }
+        ];
+
+        // --- Elementos de la Interfaz de Usuario (referencias a elementos HTML) ---
+        const introScreen = document.getElementById('intro-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const startButton = document.getElementById('start-button');
+        const canvas = document.getElementById('maze-canvas');
+        const ctx = canvas.getContext('2d'); // Contexto 2D para dibujar en el canvas
+        const ball = document.getElementById('ball');
+        const goal = document.getElementById('goal');
+        const messageOverlay = document.getElementById('message-overlay');
+        const questionText = document.getElementById('question-text');
+        const optionButtons = [ // Array de botones de opción
+            document.getElementById('option1'),
+            document.getElementById('option2'),
+            document.getElementById('option3')
+        ];
+        const feedbackMessage = document.getElementById('feedback-message');
+        const retryButton = document.getElementById('retry-button');
+        const nextQuestionButton = document.getElementById('next-question-button');
+        const finishGameButton = document.getElementById('finish-game-button');
+        const restartGameButton = document.getElementById('restart-game-button');
+
+        // --- Variables del Juego ---
+        const CELL_SIZE = 20; // Tamaño de cada celda del laberinto en píxeles (20x20)
+        const MAZE_WIDTH_CELLS = 25; // 500px / 20px = 25 celdas
+        const MAZE_HEIGHT_CELLS = 25; // 500px / 20px = 25 celdas
+        const ballDiameter = 18; // Diámetro de la bola en píxeles (un poco menos que CELL_SIZE)
+
+        // Posición inicial de la bola (top-left en píxeles)
+        // Se inicializa en la primera celda transitable del laberinto (maze[1][1])
+        let ballX = CELL_SIZE + (CELL_SIZE - ballDiameter) / 2;
+        let ballY = CELL_SIZE + (CELL_SIZE - ballDiameter) / 2;
+
+        // Representación del laberinto: 1 es pared, 0 es camino.
+        // Inicializar el laberinto con todas las paredes
+        const maze = Array(MAZE_HEIGHT_CELLS).fill(0).map(() => Array(MAZE_WIDTH_CELLS).fill(1));
+
+        // Generar un laberinto con un camino más complejo para el nivel intermedio
+        // La meta está en la esquina inferior derecha.
+
+        // Rellenar el laberinto para que sea casi todo paredes, dejando solo los bordes exteriores
+        for (let y = 0; y < MAZE_HEIGHT_CELLS; y++) {
+            for (let x = 0; x < MAZE_WIDTH_CELLS; x++) {
+                maze[y][x] = 1; // Por defecto, todo es pared
+            }
+        }
+
+        // Definir un camino más extenso y con más obstáculos
+        // Este camino es más complejo y largo, cubriendo más del mapa
+        const path = [
+            [1,1], [1,2], [1,3], [1,4], [1,5],
+            [2,5], [2,6], [2,7], [2,8], [2,9], [2,10],
+            [3,10], [3,9], [3,8], [3,7], [3,6], [3,5], [3,4], [3,3], [3,2], [3,1],
+            [4,1], [4,2], [4,3], [4,4], [4,5], [4,6], [4,7], [4,8], [4,9], [4,10],
+            [5,10], [5,11], [5,12], [5,13], [5,14], [5,15], [5,16], [5,17], [5,18], [5,19], [5,20], [5,21], [5,22], [5,23],
+            [6,23], [6,22], [6,21], [6,20], [6,19], [6,18], [6,17], [6,16], [6,15], [6,14], [6,13], [6,12], [6,11],
+            [7,11], [7,10], [7,9], [7,8], [7,7], [7,6], [7,5], [7,4], [7,3], [7,2], [7,1],
+            [8,1], [8,2], [8,3], [8,4], [8,5], [8,6], [8,7], [8,8], [8,9], [8,10], [8,11], [8,12], [8,13], [8,14], [8,15], [8,16], [8,17], [8,18], [8,19], [8,20], [8,21], [8,22], [8,23],
+            [9,23], [9,22], [9,21], [9,20], [9,19], [9,18], [9,17], [9,16], [9,15], [9,14], [9,13], [9,12],
+            [10,12], [10,11], [10,10], [10,9], [10,8], [10,7], [10,6], [10,5], [10,4], [10,3], [10,2],
+            [11,2], [11,3], [11,4], [11,5], [11,6], [11,7], [11,8], [11,9], [11,10], [11,11], [11,12], [11,13], [11,14], [11,15], [11,16], [11,17], [11,18], [11,19], [11,20], [11,21], [11,22], [11,23],
+            [12,23], [12,22], [12,21], [12,20], [12,19], [12,18], [12,17], [12,16], [12,15], [12,14], [12,13],
+            [13,13], [13,12], [13,11], [13,10], [13,9], [13,8], [13,7], [13,6], [13,5], [13,4], [13,3],
+            [14,3], [14,4], [14,5], [14,6], [14,7], [14,8], [14,9], [14,10], [14,11], [14,12], [14,13], [14,14], [14,15], [14,16], [14,17], [14,18], [14,19], [14,20], [14,21], [14,22], [14,23],
+            [15,23], [15,22], [15,21], [15,20], [15,19], [15,18], [15,17], [15,16], [15,15], [15,14], [15,13], [15,12], [15,11],
+            [16,11], [16,10], [16,9], [16,8], [16,7], [16,6], [16,5], [16,4], [16,3],
+            [17,3], [17,4], [17,5], [17,6], [17,7], [17,8], [17,9], [17,10], [17,11], [17,12], [17,13], [17,14], [17,15], [17,16], [17,17], [17,18], [17,19], [17,20], [17,21], [17,22], [17,23],
+            [18,23], [18,22], [18,21], [18,20], [18,19], [18,18], [18,17], [18,16], [18,15], [18,14], [18,13], [18,12], [18,11],
+            [19,11], [19,10], [19,9], [19,8], [19,7], [19,6], [19,5], [19,4], [19,3],
+            [20,3], [20,4], [20,5], [20,6], [20,7], [20,8], [20,9], [20,10], [20,11], [20,12], [20,13], [20,14], [20,15], [20,16], [20,17], [20,18], [20,19], [20,20], [20,21], [20,22], [20,23],
+            [21,23], [21,22], [21,21], [21,20], [21,19], [21,18], [21,17], [21,16], [21,15], [21,14], [21,13], [21,12], [21,11],
+            [22,11], [22,10], [22,9], [22,8], [22,7], [22,6], [22,5], [22,4], [22,3],
+            [23,3], [23,4], [23,5], [23,6], [23,7], [23,8], [23,9], [23,10], [23,11], [23,12], [23,13], [23,14], [23,15], [23,16], [23,17], [23,18], [23,19], [23,20], [23,21], [23,22], [23,23] // Final: Meta
+        ];
+
+        // Carve the path in the maze array
+        path.forEach(([y, x]) => {
+            maze[y][x] = 0;
+        });
+
+        // Coordenadas de la meta en celdas (la última celda transitable antes del borde)
+        const GOAL_X = MAZE_WIDTH_CELLS - 2; // Columna 23
+        const GOAL_Y = MAZE_HEIGHT_CELLS - 2; // Fila 23
+
+        let currentQuestionIndex = 0; // Para llevar la cuenta de la pregunta actual
+        let isQuestionActive = false; // Bandera para bloquear el movimiento de la bola durante las preguntas
+
+        // --- Funciones de Control de Pantallas ---
+        /**
+         * Muestra la pantalla deseada y oculta las demás.
+         * @param {HTMLElement} screenElement El elemento DOM de la pantalla a mostrar.
+         */
+        function showScreen(screenElement) {
+            introScreen.style.display = 'none';
+            gameScreen.style.display = 'none';
+            messageOverlay.style.display = 'none'; // Asegura que el overlay esté oculto
+
+            screenElement.style.display = 'flex'; // Muestra la pantalla especificada
+        }
+
+        // --- Funciones del Laberinto y Juego ---
+        /**
+         * Dibuja las paredes del laberinto en el canvas, incluyendo las líneas de los obstáculos.
+         */
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
+            for (let y = 0; y < MAZE_HEIGHT_CELLS; y++) {
+                for (let x = 0; x < MAZE_WIDTH_CELLS; x++) {
+                    if (maze[y][x] === 1) { // Si es una pared
+                        ctx.fillStyle = '#1a252f'; // Color de relleno de la pared
+                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE); // Dibuja el relleno
+
+                        // Dibuja la línea/borde del obstáculo
+                        ctx.strokeStyle = '#0d131a'; // Un color más oscuro para la línea (borde)
+                        ctx.lineWidth = 1; // Grosor de la línea
+                        ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE); // Dibuja la línea/borde
+                    }
+                }
+            }
+            // Posicionar la meta visualmente (el div #goal)
+            goal.style.left = (GOAL_X * CELL_SIZE) + 'px';
+            goal.style.top = (GOAL_Y * CELL_SIZE) + 'px';
+        }
+
+        /**
+         * Actualiza la posición visual de la bola en el DOM.
+         */
+        function updateBallPosition() {
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+        }
+
+        /**
+         * Verifica si la bola colisiona con una pared o el borde del laberinto.
+         * @param {number} newX La posible nueva posición X de la bola (top-left).
+         * @param {number} newY La posible nueva posición Y de la bola (top-left).
+         * @returns {boolean} True si hay colisión, False en caso contrario.
+         */
+        function checkCollision(newX, newY) {
+            // Se comprueban las cuatro esquinas de la bola para detectar colisiones.
+            const pointsToCheck = [
+                [newX, newY],                                       // Esquina superior izquierda
+                [newX + ballDiameter - 1, newY],                    // Esquina superior derecha
+                [newX, newY + ballDiameter - 1],                    // Esquina inferior izquierda
+                [newX + ballDiameter - 1, newY + ballDiameter - 1]  // Esquina inferior derecha
+            ];
+
+            // 1. Verificar colisión con los límites del canvas
+            if (newX < 0 || newX + ballDiameter > canvas.width ||
+                newY < 0 || newY + ballDiameter > canvas.height) {
+                return true; // Colisión con el borde del canvas
+            }
+
+            // 2. Verificar colisión con las paredes del laberinto
+            for (let i = 0; i < pointsToCheck.length; i++) {
+                const px = pointsToCheck[i][0];
+                const py = pointsToCheck[i][1];
+
+                // Convertir coordenadas de píxeles a coordenadas de celda del laberinto
+                const cellX = Math.floor(px / CELL_SIZE);
+                const cellY = Math.floor(py / CELL_SIZE);
+
+                // Asegurarse de que las coordenadas de la celda estén dentro de los límites del array del laberinto
+                if (cellX >= 0 && cellX < MAZE_WIDTH_CELLS && cellY >= 0 && cellY < MAZE_HEIGHT_CELLS) {
+                    if (maze[cellY][cellX] === 1) { // Si la celda es una pared (valor 1)
+                        return true; // Colisión con una pared
+                    }
+                }
+            }
+            return false; // No hay colisión
+        }
+
+        /**
+         * Mueve la bola en la dirección especificada (dx, dy) si no hay colisión.
+         * @param {number} dx Cambio en la posición X.
+         * @param {number} dy Cambio en la posición Y.
+         */
+        function moveBall(dx, dy) {
+            if (isQuestionActive) return; // No mover la bola si hay una pregunta activa
+
+            let newBallX = ballX + dx;
+            let newBallY = ballY + dy;
+
+            if (!checkCollision(newBallX, newBallY)) { // Si no hay colisión en la nueva posición
+                ballX = newBallX; // Actualiza la posición de la bola
+                ballY = newBallY;
+                updateBallPosition(); // Actualiza la posición visual en el DOM
+                checkGoal(); // Verifica si se ha llegado a la meta
+            }
+        }
+
+        /**
+         * Verifica si la bola ha alcanzado la celda de la meta.
+         */
+        function checkGoal() {
+            // Obtener la celda actual de la bola (basado en su centro para una mejor detección)
+            const ballCenterX = ballX + ballDiameter / 2;
+            const ballCenterY = ballY + ballDiameter / 2;
+
+            const currentCellX = Math.floor(ballCenterX / CELL_SIZE);
+            const currentCellY = Math.floor(ballCenterY / CELL_SIZE);
+
+            if (currentCellX === GOAL_X && currentCellY === GOAL_Y) {
+                showQuestion(); // Muestra el overlay de la pregunta
+                isQuestionActive = true; // Bloquea el movimiento de la bola
+            }
+        }
+
+        /**
+         * Reinicia el estado del juego, incluyendo la posición de la bola y las preguntas.
+         */
+        function resetGame() {
+            // Posición inicial de la bola (en el centro de la celda maze[1][1])
+            ballX = CELL_SIZE + (CELL_SIZE - ballDiameter) / 2;
+            ballY = CELL_SIZE + (CELL_SIZE - ballDiameter) / 2;
+            updateBallPosition(); // Actualiza la posición visual de la bola
+            drawMaze(); // Redibuja el laberinto
+            currentQuestionIndex = 0; // Reinicia el contador de preguntas
+        }
+
+        // --- Funciones de Preguntas ---
+        /**
+         * Muestra una pregunta del array `brainQuestions`.
+         * Si no hay más preguntas, muestra el mensaje de finalización.
+         */
+        function showQuestion() {
+            if (currentQuestionIndex < brainQuestions.length) {
+                const q = brainQuestions[currentQuestionIndex];
+                questionText.textContent = q.question; // Establece el texto de la pregunta
+                feedbackMessage.textContent = ''; // Limpia el mensaje de retroalimentación
+                // Oculta todos los botones de acción hasta que se evalúe la respuesta
+                retryButton.style.display = 'none';
+                nextQuestionButton.style.display = 'none';
+                finishGameButton.style.display = 'none';
+                restartGameButton.style.display = 'none';
+
+                // Mezcla las opciones para que no siempre salgan en el mismo orden
+                const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+                // Asigna texto y manejador de clic a cada botón de opción
+                optionButtons.forEach((button, index) => {
+                    button.textContent = shuffledOptions[index];
+                    button.onclick = () => checkAnswer(shuffledOptions[index], q.correctAnswer);
+                    button.style.display = 'block'; // Asegura que los botones de opción sean visibles
+                });
+                messageOverlay.style.display = 'flex'; // Muestra el overlay de la pregunta
+            } else {
+                // Si ya no hay más preguntas (el juego ha terminado)
+                questionText.textContent = "¡Felicidades! Has completado todas las preguntas y el laberinto.";
+                optionButtons.forEach(button => button.style.display = 'none'); // Oculta los botones de opción
+                feedbackMessage.textContent = ''; // Limpia el mensaje de retroalimentación
+                // Muestra botones para reiniciar el juego completo o el laberinto
+                retryButton.style.display = 'none';
+                nextQuestionButton.style.display = 'none';
+                finishGameButton.style.display = 'block'; // Botón para reiniciar el juego desde la introducción
+                restartGameButton.style.display = 'block'; // Botón para reiniciar el laberinto y preguntas
+                messageOverlay.style.display = 'flex'; // Muestra el overlay
+            }
+        }
+
+        /**
+         * Verifica si la opción seleccionada por el jugador es correcta.
+         * @param {string} selectedOption La opción elegida por el jugador.
+         * @param {string} correctAnswer La respuesta correcta para la pregunta actual.
+         */
+        function checkAnswer(selectedOption, correctAnswer) {
+            optionButtons.forEach(button => button.style.display = 'none'); // Oculta las opciones después de responder
+
+            if (selectedOption === correctAnswer) {
+                feedbackMessage.textContent = "¡Correcto! Muy bien.";
+                feedbackMessage.style.color = '#27ae60'; // Verde para correcto
+                currentQuestionIndex++; // Avanza a la siguiente pregunta
+                if (currentQuestionIndex < brainQuestions.length) {
+                    nextQuestionButton.style.display = 'block'; // Si hay más preguntas, muestra botón para siguiente
+                } else {
+                    finishGameButton.style.display = 'block'; // Si es la última, muestra botón de finalizar
+                    restartGameButton.style.display = 'block';
+                }
+            } else {
+                feedbackMessage.textContent = `Incorrecto. La respuesta correcta era: "${correctAnswer}"`;
+                feedbackMessage.style.color = '#e74c3c'; // Rojo para incorrecto
+                retryButton.style.display = 'block'; // Muestra el botón "Reintentar"
+            }
+        }
+
+        // --- Event Listeners (Controladores de Eventos para interacciones de usuario) ---
+
+        // Manejo del movimiento de la bola con las teclas del computador (flechas y WASD)
+        document.addEventListener('keydown', (e) => {
+            const step = CELL_SIZE / 2; // El tamaño del paso de movimiento (la mitad de una celda para suavidad)
+            // Solo permitir movimiento si la pantalla del juego está activa (visible)
+            // Y si no hay una pregunta activa bloqueando el movimiento
+            if (gameScreen.style.display === 'flex' && !isQuestionActive) {
+                if (e.key === 'ArrowUp' || e.key === 'w') {
+                    moveBall(0, -step); // Mover hacia arriba (Y negativo)
+                } else if (e.key === 'ArrowDown' || e.key === 's') {
+                    moveBall(0, step); // Mover hacia abajo (Y positivo)
+                } else if (e.key === 'ArrowLeft' || e.key === 'a') {
+                    moveBall(-step, 0); // Mover hacia la izquierda (X negativo)
+                } else if (e.key === 'ArrowRight' || e.key === 'd') {
+                    moveBall(step, 0); // Mover hacia la derecha (X positivo)
+                }
+            }
+        });
+
+        // Cuando se hace clic en el botón "Empezar" en la pantalla de introducción
+        startButton.addEventListener('click', () => {
+            introScreen.style.display = 'none'; // Oculta la pantalla de introducción
+            gameScreen.style.display = 'flex'; /* Muestra la pantalla del juego (flex para centrar) */
+
+            // Configura el tamaño de la bola y la meta una vez que el juego empieza
+            ball.style.width = ballDiameter + 'px';
+            ball.style.height = ballDiameter + 'px';
+            goal.style.width = CELL_SIZE + 'px';
+            goal.style.height = CELL_SIZE + 'px';
+
+            resetGame(); // Inicializa el juego (dibuja laberinto y posiciona bola)
+        });
+
+        // Cuando se hace clic en el botón "Reintentar" en el overlay de preguntas
+        retryButton.addEventListener('click', () => {
+            messageOverlay.style.display = 'none'; // Oculta el overlay
+            isQuestionActive = false; // Desbloquea el movimiento de la bola
+            resetGame(); // Reinicia el laberinto y las preguntas
+        });
+
+        // Cuando se hace clic en el botón "Siguiente Pregunta" en el overlay
+        nextQuestionButton.addEventListener('click', () => {
+            messageOverlay.style.display = 'none'; // Oculta el overlay
+            isQuestionActive = false; // Desbloquea el movimiento de la bola
+            resetGame(); // Reinicia el laberinto y avanza a la siguiente pregunta
+        });
+
+        // Cuando se hace clic en el botón "¡Felicidades! Reiniciar Juego" (al terminar todas las preguntas)
+        finishGameButton.addEventListener('click', () => {
+            showScreen(introScreen); // Vuelve a la pantalla de introducción
+            currentQuestionIndex = 0; // Reinicia el contador de preguntas para una nueva partida completa
+            resetGame(); // Reinicia la posición de la bola y el laberinto
+            isQuestionActive = false;
+        });
+
+        // Cuando se hace clic en el botón "Reiniciar Laberinto" (reinicia el laberinto y preguntas actuales)
+        restartGameButton.addEventListener('click', () => {
+            currentQuestionIndex = 0; // Reinicia todas las preguntas desde el principio
+            resetGame(); // Reinicia la bola al inicio del laberinto
+            messageOverlay.style.display = 'none'; // Oculta el overlay
+            isQuestionActive = false; // Desbloquea el movimiento
+        });
+
+        // --- Inicialización al cargar la página ---
+        // La pantalla de introducción ya está visible por defecto gracias al CSS inicial.
+        // `game-screen` y `message-overlay` están ocultos por CSS.
+    </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuro-Memoria: Partes del Cerebro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://pplx-res.cloudinary.com/image/upload/t_thumbnail/v1747756663/gpt4o_images/eatngaykorl6vxod84tb.png" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados y para la animación de volteo */
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #2c3e50; /* Azul oscuro */
+            color: #ecf0f1; /* Blanco suave */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box; /* Asegura que el padding no cause desbordamiento */
+        }
+
+        /* Estilo para la pantalla de inicio */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(44, 62, 80, 0.95); /* Fondo oscuro semitransparente */
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        #start-screen h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+        }
+
+        #start-button {
+            background-color: #2ecc71; /* Verde para el botón de inicio */
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2em;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        #start-button:hover {
+            background-color: #27ae60;
+        }
+        #start-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Contenedor del juego, inicialmente oculto */
+        #game-container {
+            display: none; /* Oculta el juego al inicio */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .game-board {
+            /* AUMENTADO CONSIDERABLEMENTE: Hacemos las fichas mucho más grandes */
+            grid-template-columns: repeat(4, minmax(130px, 180px)); /* 4 columnas responsivas, ahora mucho más grandes */
+            gap: 20px; /* Espacio entre tarjetas, también más grande */
+            perspective: 1000px; /* Necesario para la animación 3D */
+            max-width: 800px; /* AUMENTADO: Ancho máximo del tablero para acomodar fichas más grandes */
+            width: 95%; /* Ancho relativo */
+            margin: 20px auto; /* Centrado */
+            display: grid; /* Asegura que el grid se aplique */
+        }
+
+        .card {
+            background-color: #3498db; /* Azul brillante */
+            border-radius: 8px;
+            aspect-ratio: 1 / 1; /* Mantiene las tarjetas cuadradas */
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.is-matched {
+            border: 4px solid #2ecc71; /* Borde verde para emparejadas */
+            cursor: default;
+            opacity: 0.7; /* Ligeramente transparente */
+            /* Asegura que permanezcan volteadas después de la coincidencia */
+            transform: rotateY(180deg);
+        }
+
+        .card.is-blocked { /* Estilo para cartas bloqueadas cuando se acaba el tiempo */
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Oculta la cara trasera al voltear */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            overflow: hidden; /* Asegura que el contenido no se salga */
+            text-align: center;
+            padding: 5px; /* Pequeño padding interno */
+        }
+
+        .card-face--front {
+            background-color: #3498db; /* Color del reverso */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%232c3e50' fill-opacity='0.2'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .card-face--back {
+            background-color: #ecf0f1; /* Color del anverso (blanco suave) */
+            color: #2c3e50; /* Texto oscuro */
+            transform: rotateY(180deg);
+            /* AUMENTADO: Tamaño de fuente más grande para el texto de las fichas */
+            font-size: 0.9em; /* Ligeramente más grande */
+            line-height: 1.2;
+        }
+
+        .card-face--back svg { /* Estilo para los SVGs */
+            /* AUMENTADO: Permitimos que las imágenes/SVGs sean más grandes */
+            max-width: 95%; /* Ocupa casi todo el espacio */
+            max-height: 95%; /* Ocupa casi todo el espacio */
+            object-fit: contain;
+        }
+        .card-face--back img { /* Estilo para las imágenes */
+            /* AUMENTADO: Permitimos que las imágenes/SVGs sean más grandes */
+            max-width: 95%; /* Ocupa casi todo el espacio */
+            max-height: 95%; /* Ocupa casi todo el espacio */
+            object-fit: contain;
+        }
+
+        /* Estilos para botones y mensajes */
+        .status-bar {
+            margin-bottom: 20px;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        #timer {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(44, 62, 80, 0.95);
+            color: #ecf0f1;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
+            display: none; /* Asegúrate de que estén ocultos al inicio */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            font-size: 1.2em;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        #game-over-message {
+            background-color: rgba(192, 57, 43, 0.95);
+        }
+
+        .reset-button {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            margin-top: 20px;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-button:hover {
+            background-color: #c0392b;
+        }
+        .reset-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Media query para pantallas más pequeñas */
+        @media (max-width: 600px) {
+            #start-screen h1 {
+                font-size: 1.8em;
+            }
+            #start-button {
+                font-size: 1em;
+                padding: 12px 25px;
+            }
+            .game-board {
+                /* AUMENTADO (MÓVIL): Hacemos las fichas un poco más grandes en móvil también */
+                grid-template-columns: repeat(3, minmax(90px, 130px)); /* 3 columnas en móviles, más grandes */
+                gap: 12px;
+            }
+            .card-face--back {
+                font-size: 0.7em; /* Ajuste el tamaño de fuente si es necesario en móvil */
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .status-bar {
+                font-size: 0.7em;
+                gap: 10px;
+            }
+            .reset-button {
+                font-size: 0.7em;
+                padding: 8px 15px;
+            }
+            .message-box {
+                font-size: 1em;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>Neuro-Memoria: Partes del Cerebro</h1>
+        <button id="start-button">Empezar Juego</button>
+    </div>
+
+    <div id="game-container">
+        <div class="status-bar text-center mb-4">
+            <span id="moves-count">Movimientos: 0</span>
+            <span id="matches-count">Pares: 0/6</span>
+            <span id="timer">Tiempo: 90s</span>
+        </div>
+
+        <div id="game-board" class="game-board">
+        </div>
+
+        <button id="reset-button" class="reset-button">Reiniciar Juego</button>
+
+        <div id="win-message" class="message-box">
+            <p id="win-text">¡Felicidades! ¡Encontraste todos los pares!</p>
+            <button id="play-again-win" class="reset-button mt-4">Jugar de Nuevo</button>
+        </div>
+
+        <div id="game-over-message" class="message-box">
+            <p>¡Tiempo Agotado!</p>
+            <p>¡Inténtalo de nuevo!</p>
+            <button id="play-again-lose" class="reset-button mt-4">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Referencias a elementos del DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container'); // Nuevo contenedor para el juego
+
+        const gameBoard = document.getElementById('game-board');
+        const movesCountSpan = document.getElementById('moves-count');
+        const matchesCountSpan = document.getElementById('matches-count');
+        const timerSpan = document.getElementById('timer');
+        const resetButton = document.getElementById('reset-button');
+        const winMessageBox = document.getElementById('win-message');
+        const winText = document.getElementById('win-text');
+        const gameOverMessageBox = document.getElementById('game-over-message');
+        const playAgainWinButton = document.getElementById('play-again-win');
+        const playAgainLoseButton = document.getElementById('play-again-lose');
+
+        // Define las partes del cerebro con la opción de tener URL de imagen
+        const defaultBrainParts = [
+            { name: 'Lóbulo Frontal', id: 'frontal', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path fill="#E74C3C" d="M10 10 H 90 V 50 C 90 70, 70 90, 50 90 C 30 90, 10 70, 10 50 Z"></path></svg>`, imageUrl: 'https://images.jifo.co/cutout/c5be4713811f055b1dd8be773df84ce250199c89.png' },
+            { name: 'Lóbulo Parietal', id: 'parietal', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#2ECC71" x="15" y="10" width="70" height="40" rx="10"></rect></svg>`, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxDf50QG3gUn44y86I8n5uTBLEMK2Ee3-Vdw&s' },
+            { name: 'Lóbulo Temporal', id: 'temporal', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path fill="#F1C40F" d="M20 50 H 80 L 70 90 H 30 Z"></path></svg>`, imageUrl: 'https://media.istockphoto.com/id/1039706176/es/vector/l%C3%B3bulo-temporal-del-cerebro-humano-anatom%C3%ADa-vista-plana.jpg?s=612x612&w=0&k=20&c=f4K8Sm3RVMzl2QKWr7r0RLcYwDtxptEHV4YeorxYSwQ=' },
+            { name: 'Lóbulo Occipital', id: 'occipital', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><ellipse fill="#9B59B6" cx="50" cy="75" rx="35" ry="15"></ellipse></svg>`, imageUrl: 'https://thumbs.dreamstime.com/z/l%C3%B3bulo-occipital-de-la-vista-lateral-anatom%C3%ADa-del-cerebro-humano-plana-126542872.jpg' },
+            { name: 'Tronco Encefálico', id: 'tronco', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect fill="#3498DB" x="40" y="20" width="20" height="70" rx="5"></rect></svg>`, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuimDSqePfsKzBW0xUOeiTuSYdW9ScqyMWVQ&s' },
+            { name: 'Cerebelo', id: 'cerebelo', svgData: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle fill="#1ABC9C" cx="50" cy="70" r="25"></circle><circle fill="#16A085" cx="50" cy="70" r="15"></circle></svg>`, imageUrl: 'https://www.shutterstock.com/image-vector/drawing-human-brain-cerebellum-260nw-2540486091.jpg' }
+        ];
+
+        let brainParts = [...defaultBrainParts];
+        let cards = [];
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let moves = 0;
+        let matches = 0;
+        const totalPairs = brainParts.length;
+
+        let timerInterval = null;
+        let timeLeft = 90;
+        const initialTime = 90;
+
+        // --- Funciones del Juego ---
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createBoard() {
+            const textCards = brainParts.map(part => ({ ...part, type: 'text' }));
+            const imageCards = brainParts.map(part => ({ ...part, type: 'image' }));
+            cards = shuffle([...textCards, ...imageCards]);
+
+            gameBoard.innerHTML = '';
+
+            cards.forEach(cardData => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.id = cardData.id;
+
+                const cardFaceFront = document.createElement('div');
+                cardFaceFront.classList.add('card-face', 'card-face--front');
+
+                const cardFaceBack = document.createElement('div');
+                cardFaceBack.classList.add('card-face', 'card-face--back');
+
+                if (cardData.type === 'text') {
+                    cardFaceBack.textContent = cardData.name;
+                } else {
+                    if (cardData.imageUrl) {
+                        cardFaceBack.innerHTML = `<img src="${cardData.imageUrl}" alt="${cardData.name}">`;
+                    } else {
+                        cardFaceBack.innerHTML = cardData.svgData;
+                    }
+                }
+
+                cardElement.appendChild(cardFaceFront);
+                cardElement.appendChild(cardFaceBack);
+
+                cardElement.addEventListener('click', handleCardClick);
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        function handleCardClick() {
+            if (lockBoard || this.classList.contains('is-flipped') || this === firstCard || timeLeft <= 0) return;
+
+            flipCard(this);
+
+            if (!firstCard) {
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            lockBoard = true;
+            incrementMoves();
+            checkForMatch();
+        }
+
+        function flipCard(card) {
+            card.classList.add('is-flipped');
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                if(firstCard) firstCard.classList.remove('is-flipped');
+                if(secondCard) secondCard.classList.remove('is-flipped');
+                resetTurn();
+            }, 1000);
+        }
+
+        function checkForMatch() {
+            const isMatch = firstCard.dataset.id === secondCard.dataset.id;
+
+            if (isMatch) {
+                setTimeout(() => {
+                    disableCards();
+                }, 2000);
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            firstCard.classList.add('is-matched');
+            secondCard.classList.add('is-matched');
+
+            firstCard.removeEventListener('click', handleCardClick);
+            secondCard.removeEventListener('click', handleCardClick);
+            
+            matches++;
+            updateMatchesCount();
+            resetTurn();
+
+            if (matches === totalPairs) {
+                clearInterval(timerInterval);
+                showWinMessage();
+            }
+        }
+
+        function resetTurn() {
+            [firstCard, secondCard] = [null, null];
+            lockBoard = false;
+        }
+
+        function incrementMoves() {
+            moves++;
+            movesCountSpan.textContent = `Movimientos: ${moves}`;
+        }
+
+        function updateMatchesCount() {
+            matchesCountSpan.textContent = `Pares: ${matches}/${totalPairs}`;
+        }
+
+        function startTimer() {
+            timeLeft = initialTime;
+            timerSpan.textContent = `Tiempo: ${timeLeft}s`;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerSpan.textContent = `Tiempo: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerSpan.textContent = "Tiempo: 0s";
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function handleTimeUp() {
+            lockBoard = true;
+            gameOverMessageBox.style.display = 'block';
+            const allCards = document.querySelectorAll('.card:not(.is-matched)');
+            allCards.forEach(card => {
+                card.classList.add('is-blocked');
+                card.removeEventListener('click', handleCardClick);
+            });
+        }
+
+        function showWinMessage() {
+            winText.textContent = `¡Felicidades! ¡Encontraste todos los pares en ${moves} movimientos con ${timeLeft}s restantes!`;
+            winMessageBox.style.display = 'block';
+        }
+
+        function restartGame() {
+            moves = 0;
+            matches = 0;
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+
+            movesCountSpan.textContent = `Movimientos: ${moves}`;
+            updateMatchesCount();
+
+            winMessageBox.style.display = 'none';
+            gameOverMessageBox.style.display = 'none';
+
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('is-flipped', 'is-matched', 'is-blocked');
+                card.removeEventListener('click', handleCardClick);
+                card.addEventListener('click', handleCardClick);
+            });
+
+            createBoard();
+            startTimer();
+        }
+
+        // --- Nuevas funciones para manejar la pantalla de inicio ---
+        function showGame() {
+            startScreen.style.display = 'none'; // Oculta la pantalla de inicio
+            gameContainer.style.display = 'flex'; // Muestra el contenedor del juego
+            restartGame(); // Inicia el juego
+        }
+
+        // --- Inicialización y Event Listeners ---
+        startButton.addEventListener('click', showGame); // Al hacer clic en "Empezar Juego"
+        resetButton.addEventListener('click', restartGame);
+        playAgainWinButton.addEventListener('click', restartGame);
+        playAgainLoseButton.addEventListener('click', restartGame);
+
+        // El juego NO se inicia automáticamente al cargar la página.
+        // Solo se mostrará la pantalla de inicio.
+    </script>
+
+</body>
+</html>

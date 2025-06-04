@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a los juegos PPM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnr3W98EMal2ytJnAwvLoCmBoCkjD80NuoZ6z2WEp_n_bG2W2OKcoBgcb1GYGw" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive, 'Inter', sans-serif; /* Fuente pixelada como principal */
+            background-color: #1a252f; /* Fondo azul oscuro */
+            color: #ecf0f1; /* Texto blanco/gris claro */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            background-color: #0d131a; /* Azul muy oscuro para el encabezado */
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #ecf0f1;
+            /* Ajuste de tamaño para que la fuente pixelada se vea bien en el título */
+            font-size: 2.2rem; /* Ligeramente más pequeño para pixel */
+            line-height: 1.2; /* Espaciado de línea para legibilidad */
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #bdc3c7;
+            /* Ajuste de tamaño para la fuente pixelada */
+            font-size: 1rem;
+        }
+
+        .game-card {
+            background-color: #2c3e50; /* Azul oscuro para las tarjetas */
+            border-radius: 12px; /* Esquinas más redondeadas */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            border: 2px solid transparent; /* Borde inicial transparente */
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px); /* Efecto de elevación al pasar el ratón */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+            border-color: #3498db; /* Borde azul claro al pasar el ratón */
+        }
+
+        .game-card img {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px; /* Esquinas redondeadas para las imágenes */
+            margin-bottom: 16px;
+            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+            border: 3px solid #34495e; /* Borde sutil alrededor de la imagen */
+        }
+
+        .game-card h3 {
+            font-size: 1.75rem; /* Título más grande */
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #f1c40f; /* Amarillo vibrante para los títulos */
+            /* Ajuste de tamaño para la fuente pixelada */
+            font-size: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .game-card p {
+            font-size: 0.95rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+            min-height: 40px; /* Altura mínima para descripciones */
+            /* Ajuste de tamaño para la fuente pixelada */
+            font-size: 0.8rem;
+        }
+
+        /* Estilo para los enlaces de botón (a.btn) */
+        .game-card .btn {
+            background-color: #3498db; /* Azul vibrante para los botones */
+            color: white;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none; /* Quitar subrayado de enlace */
+            display: inline-block; /* Para que padding y margin funcionen como en un botón */
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            /* Ajuste de tamaño para la fuente pixelada */
+            font-size: 1rem;
+            padding: 10px 24px;
+        }
+
+        .game-card .btn:hover {
+            background-color: #2980b9; /* Azul más oscuro al pasar el ratón */
+            transform: translateY(-2px);
+        }
+
+        .game-card .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            /* Ajuste de tamaño para la fuente pixelada */
+            font-size: 0.75rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem; /* Ajustado para móviles con fuente pixelada */
+            }
+            .header p {
+                font-size: 0.9rem; /* Ajustado para móviles con fuente pixelada */
+            }
+            .game-card {
+                padding: 20px;
+            }
+            .game-card h3 {
+                font-size: 1.3rem; /* Ajustado para móviles con fuente pixelada */
+            }
+            .game-card p {
+                font-size: 0.75rem; /* Ajustado para móviles con fuente pixelada */
+            }
+            .game-card .btn {
+                padding: 8px 20px;
+                font-size: 0.9rem; /* Ajustado para móviles con fuente pixelada */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bienvenido a los juegos PPM</h1>
+        <p>Pensamientos Profundos de la Mente</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-8 p-4 max-w-4xl mx-auto">
+        <div class="game-card">
+            <img src="https://pplx-res.cloudinary.com/image/upload/t_thumbnail/v1747756663/gpt4o_images/eatngaykorl6vxod84tb.png" alt="Icono Juego de Memoria">
+            <h3>Juego de Memoria</h3>
+            <p>Trata de adivinar las parejas o las preguntas.</p>
+            <a href="juego1.html" class="btn">Jugar</a>
+        </div>
+
+        <div class="game-card">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAAtHHqei3VOLDY0dBicC9nb_czWiUycLF_A&s" alt="Icono Kahoot 1">
+            <h3>Laberinto</h3>
+            <p>Juega y aprende con los niveles, al final interactúas con preguntas!</p>
+            <a href="juego2.html" class="btn">Jugar</a>
+        </div>
+
+        <div class="game-card">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGJ_Hrv9vMqzfttRGJ9nzIzIzRXmeVIl3oRA&s" alt="Icono Laberinto">
+            <h3>Kahoot 1</h3>
+            <p>Cerebro vs Computador, Veamos quién ganara1</p>
+            <a href="https://kahoot.it/challenge/138997b0-bb8e-4214-9a35-7cb9e53be02f_1747765148801" class="btn">Jugar</a>
+        </div>
+
+        <div class="game-card">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGJ_Hrv9vMqzfttRGJ9nzIzIzRXmeVIl3oRA&s" alt="Icono Kahoot 2">
+            <h3>Kahoot 2</h3>
+            <p>Cultura General, ¡Veamos cuánto sabes!</p>
+            <a href="https://kahoot.it/challenge/138997b0-bb8e-4214-9a35-7cb9e53be02f_1747765274113" class="btn">Jugar</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 Mundo Gamer. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>
